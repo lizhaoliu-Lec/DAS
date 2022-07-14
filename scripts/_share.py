@@ -34,9 +34,18 @@ def get_dataloaders(opt, model):
 
     dataloaders['evaluation'] = DataLoader(datasets['evaluation'], num_workers=opt.kernels,
                                            batch_size=opt.bs, shuffle=False)
-    dataloaders['testing'] = DataLoader(datasets['testing'], num_workers=opt.kernels,
-                                        batch_size=opt.bs,
-                                        shuffle=False)
+    if opt.dataset == "in-shop":
+        dataloaders['testing_query'] = DataLoader(datasets['testing'], num_workers=opt.kernels,
+                                                  batch_size=opt.bs,
+                                                  shuffle=False)
+        dataloaders['testing_gallery'] = DataLoader(datasets['evaluation_train'], num_workers=opt.kernels,
+                                                    batch_size=opt.bs,
+                                                    shuffle=False)
+    else:
+        dataloaders['testing'] = DataLoader(datasets['testing'], num_workers=opt.kernels,
+                                            batch_size=opt.bs,
+                                            shuffle=False)
+
     if opt.use_tv_split:
         dataloaders['validation'] = DataLoader(datasets['validation'], num_workers=opt.kernels,
                                                batch_size=opt.bs, shuffle=False)
@@ -178,8 +187,13 @@ def evaluate(opt, epoch, model, dataloaders, metric_computer, LOG, criterion=Non
     # Evaluate Metric for Training & Test (& Validation)
     model.eval()
     print('\nEpoch {0}/{1} Computing Testing Metrics...'.format(epoch, opt.n_epochs))
-    eval.evaluate(LOG, metric_computer, dataloaders['testing'], model, opt, opt.eval_types,
-                  opt.device, log_key='Test', criterion=criterion)
+    if opt.dataset == "in-shop":
+        eval.evaluate_query_and_gallery(LOG, metric_computer, dataloaders['testing_query'],
+                                        dataloaders['testing_gallery'], model, opt, opt.eval_types,
+                                        opt.device, log_key='Test', criterion=criterion)
+    else:
+        eval.evaluate(LOG, metric_computer, dataloaders['testing'], model, opt, opt.eval_types,
+                      opt.device, log_key='Test', criterion=criterion)
     if opt.use_tv_split:
         print('\nEpoch {0}/{1} Computing Validation Metrics...'.format(epoch, opt.n_epochs))
         eval.evaluate(LOG, metric_computer, dataloaders['validation'], model, opt, opt.eval_types,

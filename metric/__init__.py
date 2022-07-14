@@ -211,3 +211,185 @@ class MetricComputer:
 
         torch.cuda.empty_cache()
         return computed_metrics, extra_infos
+
+
+def compute_query_gallery(self, opt, model, dataloader_query, dataloader_gallery, eval_types, device):
+    eval_types = copy.deepcopy(eval_types)
+
+    n_classes = opt.n_classes
+    _ = model.eval()
+
+    with torch.no_grad():
+        target_labels = []
+        query_feature_coll = {key: [] for key in eval_types}
+        query_image_paths = [x[0] for x in dataloader_query.dataset.image_list]
+        query_iter = tqdm(dataloader_query, desc='Extraction Query Features...'.format(len(eval_types)))
+        for idx, inp in enumerate(query_iter):
+            input_img, target = inp[1], inp[0]
+            target_labels.extend(target.numpy().tolist())
+            out = model(input_img.to(device))
+            if isinstance(out, tuple):
+                out, aux_f = out
+            # Include embeddings of all output features
+            for eval_type in eval_types:
+                if isinstance(out, dict):
+                    query_feature_coll[eval_type].extend(out[eval_type].cpu().detach().numpy().tolist())
+                else:
+                    query_feature_coll[eval_type].extend(out.cpu().detach().numpy().tolist())
+
+        ### For all gallery test images, extract features
+        gallery_target_labels = []
+        gallery_feature_coll = {key: [] for key in eval_types}
+        gallery_image_paths = [x[0] for x in dataloader_gallery.dataset.image_list]
+        gallery_iter = tqdm(dataloader_gallery, desc='Extraction Gallery Features...'.format(len(eval_types)))
+        for idx, inp in enumerate(gallery_iter):
+            input_img, target = inp[1], inp[0]
+            gallery_target_labels.extend(target.numpy().tolist())
+            out = model(input_img.to(device))
+            if isinstance(out, tuple):
+                out, aux_f = out
+            # Include embeddings of all output features
+            for eval_type in eval_types:
+                if isinstance(out, dict):
+                    gallery_feature_coll[eval_type].extend(out[eval_type].cpu().detach().numpy().tolist())
+                else:
+                    gallery_feature_coll[eval_type].extend(out.cpu().detach().numpy().tolist())
+
+        target_labels = np.hstack(target_labels).reshape(-1, 1)
+        gallery_target_labels = np.hstack(gallery_target_labels).reshape(-1, 1)
+
+        torch.cuda.empty_cache()
+
+    computed_metrics = {eval_type: {} for eval_type in eval_types}
+    extra_infos = {eval_type: {} for eval_type in eval_types}
+
+    faiss.omp_set_num_threads(self.pars.kernels)
+    res = None
+    torch.cuda.empty_cache()
+    if self.pars.evaluate_on_gpu:
+        res = faiss.StandardGpuResources()
+
+    for eval_type in eval_types:
+
+        features = np.vstack(query_feature_coll[eval_type]).astype('float32')
+        features_cosine = normalize(features, axis=1)
+        gallery_features = np.vstack(gallery_feature_coll[eval_type]).astype('float32')
+        gallery_features_cosine = normalize(gallery_features, axis=1)
+
+        """============ Compute k-Means ==============="""
+        if 'kmeans' in self.requires:
+            # Set CPU Cluster index
+            cluster_idx = faiss.IndexFlatL2(gallery_features.shape[-1])
+            if res is not None:
+                cluster_idx = faiss.index_cpu_to_gpu(res, 0, cluster_idx)
+            kmeans = faiss.Clustering(gallery_features.shape[-1], n_classes)
+            kmeans.niter = 20
+            kmeans.min_points_per_centroid = 1
+            kmeans.max_points_per_centroid = 1000000000
+            # Train Kmeans
+            kmeans.train(gallery_features, cluster_idx)
+            centroids = faiss.vector_float_to_array(kmeans.centroids).reshape(n_classes, gallery_features.shape[-1])
+
+        if 'kmeans_cosine' in self.requires:
+            # Set CPU Cluster index
+            # TODO check if IndexFlatIP is a right func
+            cluster_idx = faiss.IndexFlatL2(gallery_features_cosine.shape[-1])
+            if res is not None:
+                cluster_idx = faiss.index_cpu_to_gpu(res, 0, cluster_idx)
+            kmeans = faiss.Clustering(gallery_features_cosine.shape[-1], n_classes)
+            kmeans.niter = 20
+            kmeans.min_points_per_centroid = 1
+            kmeans.max_points_per_centroid = 1000000000
+            # Train Kmeans
+            kmeans.train(gallery_features_cosine, cluster_idx)
+            centroids_cosine = faiss.vector_float_to_array(kmeans.centroids).reshape(n_classes,
+                                                                                     gallery_features_cosine.shape[
+                                                                                         -1])
+            centroids_cosine = normalize(centroids_cosine, axis=1)
+
+        """============ Compute Cluster Labels ==============="""
+        if 'kmeans_nearest' in self.requires:
+            faiss_search_index = faiss.IndexFlatL2(centroids.shape[-1])
+            if res is not None:
+                faiss_search_index = faiss.index_cpu_to_gpu(res, 0, faiss_search_index)
+            faiss_search_index.add(centroids)
+            _, computed_cluster_labels = faiss_search_index.search(features, 1)
+
+        if 'kmeans_nearest_cosine' in self.requires:
+            faiss_search_index = faiss.IndexFlatIP(centroids_cosine.shape[-1])
+            if res is not None:
+                faiss_search_index = faiss.index_cpu_to_gpu(res, 0, faiss_search_index)
+            faiss_search_index.add(centroids_cosine)
+            _, computed_cluster_labels_cosine = faiss_search_index.search(features, 1)
+
+        """============ Compute Nearest Neighbours ==============="""
+        if 'nearest_features' in self.requires:
+            faiss_search_index = faiss.IndexFlatL2(gallery_features.shape[-1])
+            if res is not None:
+                faiss_search_index = faiss.index_cpu_to_gpu(res, 0, faiss_search_index)
+            faiss_search_index.add(gallery_features)
+            max_kval = np.max([int(x.split('@')[-1]) for x in self.metric_names if 'recall' in x])
+            # Return: scores, idxes
+            _, k_closest_points = faiss_search_index.search(features,
+                                                            int(max_kval))
+            k_closest_classes = gallery_target_labels.reshape(-1)[k_closest_points]
+
+        if 'nearest_features_cosine' in self.requires:
+            faiss_search_index = faiss.IndexFlatIP(gallery_features_cosine.shape[-1])
+            if res is not None:
+                faiss_search_index = faiss.index_cpu_to_gpu(res, 0, faiss_search_index)
+            faiss_search_index.add(normalize(gallery_features_cosine, axis=1))
+
+            max_kval = np.max([int(x.split('@')[-1]) for x in self.metric_names if 'recall' in x])
+            _, k_closest_points_cosine = faiss_search_index.search(normalize(features_cosine, axis=1),
+                                                                   int(max_kval))
+            k_closest_classes_cosine = gallery_target_labels.reshape(-1)[k_closest_points_cosine]
+
+        if self.pars.evaluate_on_gpu:
+            features = torch.from_numpy(features).to(self.pars.device)
+            features_cosine = torch.from_numpy(features_cosine).to(self.pars.device)
+            gallery_features = torch.from_numpy(gallery_features).to(self.pars.device)
+            gallery_features_cosine = torch.from_numpy(gallery_features_cosine).to(self.pars.device)
+
+        for metric in self.list_of_metrics:
+            input_dict = {}
+            if 'features' in metric.requires:
+                input_dict['features'] = features
+            if 'gallery_features' in metric.requires:
+                input_dict['gallery_features'] = gallery_features
+            if 'target_labels' in metric.requires:
+                input_dict['target_labels'] = target_labels
+            if 'gallery_target_labels' in metric.requires:
+                input_dict['gallery_target_labels'] = gallery_target_labels
+
+            if 'kmeans' in metric.requires:
+                input_dict['centroids'] = centroids
+            if 'kmeans_nearest' in metric.requires:
+                input_dict['computed_cluster_labels'] = computed_cluster_labels
+            if 'nearest_features' in metric.requires:
+                input_dict['k_closest_classes'] = k_closest_classes
+
+            if 'features_cosine' in metric.requires:
+                input_dict['features_cosine'] = features_cosine
+            if 'gallery_features_cosine' in metric.requires:
+                input_dict['gallery_features_cosine'] = gallery_features_cosine
+
+            if 'kmeans_cosine' in metric.requires:
+                input_dict['centroids_cosine'] = centroids_cosine
+            if 'kmeans_nearest_cosine' in metric.requires:
+                input_dict['computed_cluster_labels_cosine'] = computed_cluster_labels_cosine
+            if 'nearest_features_cosine' in metric.requires:
+                input_dict['k_closest_classes_cosine'] = k_closest_classes_cosine
+
+            computed_metrics[eval_type][metric.name] = metric(**input_dict)
+
+        # TODO features?
+        extra_infos[eval_type] = {'features': features, 'target_labels': target_labels,
+                                  'gallery_features': gallery_features,
+                                  'gallery_target_labels': gallery_target_labels,
+                                  'image_paths': gallery_image_paths,
+                                  'query_image_paths': query_image_paths,
+                                  'gallery_image_paths': gallery_image_paths}
+
+    torch.cuda.empty_cache()
+    return computed_metrics, extra_infos

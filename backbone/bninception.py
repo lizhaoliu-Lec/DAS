@@ -1,5 +1,5 @@
 """
-The network backbone and weights are adapted and used
+The network architectures and weights are adapted and used
 from the great https://github.com/Cadene/pretrained-models.pytorch.
 """
 import pretrainedmodels as ptm
@@ -31,6 +31,7 @@ class Network(nn.Module):
         self.name = opt.arch
 
         self.out_adjust = None
+        self.x_before_normed = None
 
     def forward(self, x, warmup=False, **kwargs):
         x_before_pooled = self.model.features(x)
@@ -42,6 +43,7 @@ class Network(nn.Module):
         if self.pars.drop > 0 and self.training:
             x_pooled = F.dropout(x_pooled, p=self.pars.drop)
         x = self.model.last_linear(x_pooled.view(x.size(0), -1))
+        self.x_before_normed = x
         if 'normalize' in self.name:
             x = F.normalize(x, dim=-1)
         if self.out_adjust and not self.training:

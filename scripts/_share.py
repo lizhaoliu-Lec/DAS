@@ -14,6 +14,7 @@ import datasampler as dsamplers
 import dataset
 import evaluation as eval
 from modules.embedding_producer import EmbeddingProducer
+from modules.sec import SEC
 
 
 def set_seed(seed):
@@ -71,7 +72,7 @@ def get_dataloaders(opt, model):
 
 
 def train_one_epoch(opt, epoch, scheduler, train_data_sampler, dataloader, model, criterion, optimizer, LOG,
-                    embedding_producer: EmbeddingProducer = None):
+                    embedding_producer: EmbeddingProducer = None, sec: SEC = None):
     opt.epoch = epoch
     # Scheduling Changes specifically for cosine scheduling
     if opt.scheduler != 'none':
@@ -142,6 +143,17 @@ def train_one_epoch(opt, epoch, scheduler, train_data_sampler, dataloader, model
             loss_args['f_embed'] = model.model.last_linear
             loss_args['tensorboard'] = LOG.tensorboard
             loss = criterion(**loss_args)
+
+        # plus sec loss here
+        if sec is not None:
+            sec_loss = sec(model.x_before_normed)
+            LOG.tensorboard.add_scalar(tag='SEC/Loss',
+                                       scalar_value=sec_loss.item(),
+                                       global_step=opt.epoch)
+            LOG.tensorboard.add_scalar(tag='SEC/NormMean',
+                                       scalar_value=sec.norm_mean.item(),
+                                       global_step=opt.epoch)
+            loss += sec.weight * sec_loss
 
         optimizer.zero_grad()
         loss.backward()

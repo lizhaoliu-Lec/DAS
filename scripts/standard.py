@@ -9,6 +9,7 @@ import sampling as bmine
 import loss as criteria
 import metric
 from modules.embedding_producer import EmbeddingProducer
+from modules.sec import SEC
 from scripts._share import set_seed, get_dataloaders, train_one_epoch, evaluate
 from utilities import logger
 from utilities import misc
@@ -101,6 +102,10 @@ def main(opt):
         print("[EmbeddingProducer] Using EmbeddingProducer for model training")
         print(embedding_producer)
 
+    sec = None
+    if opt.sec:
+        sec = SEC(momentum=opt.sec_momentum, weight=opt.sec_wei)
+
     # OPTIM SETUP
     if opt.optim == 'adam':
         optimizer = torch.optim.Adam(to_optim)
@@ -146,7 +151,7 @@ def main(opt):
             train_data_sampler.full_storage_update(dataloaders['evaluation'], model, opt.device)
 
         train_one_epoch(opt, epoch, scheduler, train_data_sampler, dataloaders['training'],
-                        model, criterion, optimizer, LOG, embedding_producer=embedding_producer)
+                        model, criterion, optimizer, LOG, embedding_producer=embedding_producer, sec=sec)
         evaluate(opt, epoch, model, dataloaders, metric_computer, LOG, criterion=criterion)
 
         print('Total Epoch Runtime: {0:4.2f}s'.format(time.time() - epoch_start_time))

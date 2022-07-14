@@ -295,6 +295,16 @@ def get_embedding_producer_parameters(parser):
     return parser
 
 
+def get_sec(parser):
+    parser.add_argument('--sec', action='store_true',
+                        help='Flag. If set, sec will be used to calculate loss.')
+    parser.add_argument('--sec_wei', default=0.01, type=float,
+                        help='Optimization strength on sec loss.')
+    parser.add_argument('--sec_momentum', default=0.999, type=float,
+                        help='Sec momentum to smoothly update the feature norm.')
+    return parser
+
+
 def read_arguments_from_cmd():
     parser = get_basic_parameters()
     parser = get_basic_training_parameters(parser)
@@ -303,5 +313,6 @@ def read_arguments_from_cmd():
     parser = get_loss_specific_parameters(parser)
     # for embedding producer
     parser = get_embedding_producer_parameters(parser)
-
+    # for sec
+    parser = get_sec(parser)
     return parser.parse_args()

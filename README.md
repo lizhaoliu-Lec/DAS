@@ -84,3 +84,18 @@ bash table2.sh
 - Top 3 retrieved results with MTS on CARS. The expected and unexpected results are framed by green and red rectangles, respectively.
 
 <img src="image/MTS_visual.png" align="center">
+
+## Acknowledgement
+We borrow many codes from [Revisiting_Deep_Metric_Learning_PyTorch](https://github.com/Confusezius/Revisiting_Deep_Metric_Learning_PyTorch). Please show some support!
+
+## Citation
+If you find this code helpful for your research, please consider citing
+```
+@inproceedings{liu2022das,
+  title={DAS: Densely-Anchored Sampling for Deep Metric Learning},
+  author={Liu, Lizhao and Huang, Shangxin and Zhuang, Zhuangwei and Yang, Ran and Wang, Yaowei and Tan, Mingkui},
+  booktitle={European Conference on Computer Vision},
+  year={2022},
+  organization={Springer}
+}
+```

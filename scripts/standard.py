@@ -120,8 +120,8 @@ def main(opt):
     # METRIC COMPUTER
     opt.rho_spectrum_embed_dim = opt.embed_dim
     # automatically switch R@1,2,4,8 for CUB, CARS into
-    # R@1,10,100,1000 for SOP
-    if opt.dataset == 'online_products':
+    # R@1,10,100,1000 for SOP and In-Shop
+    if opt.dataset == 'online_products' or opt.dataset == 'in-shop':
         for ori, tar in zip([2, 4, 8], [10, 100, 1000]):
             original_recall = 'e_recall@{}'.format(ori)
             target_recall = 'e_recall@{}'.format(tar)

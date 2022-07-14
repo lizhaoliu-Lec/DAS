@@ -49,6 +49,10 @@ class BaseDataset(Dataset):
                     [transforms.Resize(size=256),
                      transforms.RandomCrop(crop_im_size)])
             self.normal_transform.append(transforms.RandomHorizontalFlip(0.5))
+
+            # if set, no image augmentation will be used, except the fixed resize
+            if opt.no_random_augmentation:
+                self.normal_transform = [transforms.Resize(size=crop_im_size)]
         else:
             self.normal_transform.extend([transforms.Resize(256), transforms.CenterCrop(crop_im_size)])
         self.normal_transform.extend([transforms.ToTensor(), normalize])

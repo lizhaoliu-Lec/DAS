@@ -26,6 +26,9 @@ def get_basic_training_parameters(parser):
                         help='Type of preprocessing/augmentation to use on the data. '
                              'Available: base (standard), adv (with color/brightness changes), '
                              'big (Images of size 256x256), red (No RandomResizedCrop).')
+    parser.add_argument('--no_random_augmentation', action='store_true',
+                        help='If set, no random data augmentation will be applied. '
+                             '(Except Resize, which is a fixed augmentation)')
 
     # General Training Parameters
     parser.add_argument('--lr', default=0.00001, type=float, help='Learning Rate for network parameters.')

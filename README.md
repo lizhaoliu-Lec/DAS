@@ -18,12 +18,12 @@ In particular, we release the code for reproducing the results of Table (1) and 
 - TITAN XP with CUDA 11.2
 - **PyTorch 1.8.1**
 - **torchvision 0.9.1**
-- **faiss 1.6.1 (GPU version)** for embedding retrieval and clustering
+- **faiss 1.6.1 (GPU version)** for embedding clustering and retrieval
 - A full list of dependencies are in [requirements.txt](requirements.txt), you can use
-	```bash
-	pip install -r requirements.txt
-	```
-	to download all the dependencies.
+  ```bash
+  pip install -r requirements.txt
+  ```
+  to download all the dependencies.
 
 ### Dataset Preparation
 We use three datasets: CUB, CARS, SOP in the paper. Download them via links below and unzip them after downloaded.

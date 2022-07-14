@@ -1,7 +1,8 @@
 ## Densely-Anchored Sampling for Deep Metric Learning (ECCV 2022)
 Created by Lizhao Liu, Shangxin Huang from South China University of Technology.
 
-This repository contains the official PyTorch-implementation of our ECCV 2022 paper [*Densely-Anchored Sampling for Deep Metric Learning*](#).
+This repository contains the official PyTorch-implementation of our ECCV 2022 paper [*Densely-Anchored Sampling for Deep
+Metric Learning*](paper/Densely_Anchored_Sampling_for_Deep_Metric_Learning_ECCV2022.pdf).
 
 In particular, we release the code for reproducing the results of Table (1) and Table (2) in the main paper.
 

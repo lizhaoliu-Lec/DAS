@@ -30,6 +30,7 @@ We use three datasets: CUB, CARS, SOP in the paper. Download them via links belo
 * CUB200-2011 (1.08 GB): https://www.dropbox.com/s/tjhf7fbxw5f9u0q/cub200.tar?dl=0
 * CARS196 (1.86 GB): https://www.dropbox.com/s/zi2o92hzqekbmef/cars196.tar?dl=0
 * SOP (2.84 GB): https://www.dropbox.com/s/fu8dgxulf10hns9/online_products.tar?dl=0
+* In-Shop (Multiple Files): http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion/InShopRetrieval.html
 
 After unzip, the data fold structure will look like these:
 
@@ -55,14 +56,38 @@ online_products
 |    │   bicycle.txt
 |    │   ...
 ```
+
+* For In-Shop
+
+```
+in-shop
+└─img
+|    └─MEN
+|         └─Denim
+|               └─id_00000080
+|                  │   01_1_front.jpg
+|                  │   ...
+|               ...
+|         ...
+|    ...
+|
+└─Eval
+|  │   list_eval_partition.txt
+```
+
 ---
+
 ### Reproduce the results in Table (1) and Table (2)
+
 - Change the DATA_ROOT variable in table1.sh and table2.sh to the path that contains the above datasets
 - To produce the results in Table (1), simply run the follow command
+
 ```
 bash table1.sh
 ```
+
 - To produce the results in Table (2), simply run the follow command
+
 ```
 bash table2.sh
 ```

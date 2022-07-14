@@ -12,8 +12,9 @@ def get_basic_parameters():
 
 def get_basic_training_parameters(parser):
     # Dataset-related Parameters
-    parser.add_argument('--dataset', default='cub200', type=str, choices=['cub200', 'cars196', 'online_products'],
-                        help='Dataset to use. Currently supported: cub200, cars196, online_products.')
+    parser.add_argument('--dataset', default='cub200', type=str,
+                        choices=['cub200', 'cars196', 'online_products', 'in-shop'],
+                        help='Dataset to use. Currently supported: cub200, cars196, online_products, in_shop.')
     parser.add_argument('--use_tv_split', action='store_true',
                         help='Flag. If set, split the training set into a training/validation set.')
     parser.add_argument('--tv_split_by_samples', action='store_true',

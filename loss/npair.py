@@ -2,33 +2,33 @@ import torch
 import torch.nn as nn
 
 ALLOWED_MINING_OPS = ['npair']
-REQUIRES_SAMPLING = True
+REQUIRES_BATCHMINER = True
 REQUIRES_OPTIM = False
 
 
 class Criterion(nn.Module):
-    def __init__(self, opt, sampling):
+    def __init__(self, opt, batchminer):
         """
         Args:
         """
         super(Criterion, self).__init__()
         self.pars = opt
         self.l2_weight = opt.loss_npair_l2
-        self.sampling = sampling
+        self.batchminer = batchminer
 
         self.name = 'npair'
 
         self.ALLOWED_MINING_OPS = ALLOWED_MINING_OPS
-        self.REQUIRES_SAMPLING = REQUIRES_SAMPLING
+        self.REQUIRES_BATCHMINER = REQUIRES_BATCHMINER
         self.REQUIRES_OPTIM = REQUIRES_OPTIM
 
     def forward(self, batch, labels, **kwargs):
-        anchors, positives, negatives = self.sampling(batch, labels)
+        anchors, positives, negatives = self.batchminer(batch, labels)
 
         loss = 0
-        if 'bninception' in self.pars.arch:
-            # clamping/value reduction to avoid initial overflow for high embedding dimensions!
-            batch = batch / 4
+        # if 'bninception' in self.pars.arch:
+        #     # clamping/value reduction to avoid initial overflow for high embedding dimensions!
+        batch = batch / 4  # TODO tmp fix, to resolve
         for anchor, positive, negative_set in zip(anchors, positives, negatives):
             a_embs, p_embs, n_embs = batch[anchor:anchor + 1], batch[positive:positive + 1], batch[negative_set]
             inner_sum = a_embs[:, None, :].bmm((n_embs - p_embs[:, None, :]).permute(0, 2, 1))

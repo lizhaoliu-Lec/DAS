@@ -1,5 +1,5 @@
 """
-The network backbone and weights are adapted and used from the great
+The network architectures and weights are adapted and used from the great
 https://github.com/Cadene/pretrained-models.pytorch.
 """
 import torch
@@ -16,23 +16,25 @@ class Network(nn.Module):
         self.model = mod.googlenet(pretrained=True)
 
         self.model.last_linear = nn.Linear(self.model.fc.in_features, opt.embed_dim)
-        self.model.fc = self.model.last_linear
+        self.model.fc = None
 
         self.pool_base = nn.AdaptiveAvgPool2d(1)
         self.pool_aux = nn.AdaptiveMaxPool2d(1) if 'double' in opt.arch else None
 
         self.name = opt.arch
 
+        self.transform_input = self.model.transform_input
+
     def forward(self, x, warmup=False, **kwargs):
         x_before_pooled = self.base_forward(x)
         x_pooled = self.pool_base(x_before_pooled)
         if self.pool_aux is not None:
-            x_pooled += self.pool_aux(x_pooled)
+            x_pooled += self.pool_aux(x_before_pooled)
         if warmup:
             x_pooled, x = x_pooled.detach(), x.detach()
         if self.pars.drop > 0 and self.training:
             x_pooled = F.dropout(x_pooled, p=self.pars.drop)
-        x = self.model.last_linear(x_pooled.view(x.size(0), -1))
+        x = self.model.last_linear(torch.reshape(x_pooled, (x.size(0), -1)))
         if 'normalize' in self.pars.arch:
             x = F.normalize(x, dim=-1)
         return x, (x_pooled, x_before_pooled)

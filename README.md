@@ -8,7 +8,7 @@ In particular, we release the code for reproducing the results of Table (1) and 
 
 <br>
 
-<img src="image/DAS.png" align="center">
+<img src="image/DAS_hd.png" align="center">
 
 *Suggestions are always welcome!*
 

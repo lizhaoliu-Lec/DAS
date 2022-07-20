@@ -119,7 +119,7 @@ If you find this code helpful for your research, please consider citing
 ```
 @inproceedings{liu2022das,
   title={DAS: Densely-Anchored Sampling for Deep Metric Learning},
-  author={Liu, Lizhao and Huang, Shangxin and Zhuang, Zhuangwei and Yang, Ran and Wang, Yaowei and Tan, Mingkui},
+  author={Liu, Lizhao and Huang, Shangxin and Zhuang, Zhuangwei and Yang, Ran and Tan, Mingkui and Wang, Yaowei},
   booktitle={European Conference on Computer Vision},
   year={2022},
   organization={Springer}

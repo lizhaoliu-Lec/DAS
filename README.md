@@ -98,11 +98,10 @@ bash table2.sh
 ## Quantitative Results
 
 <img src="image/table1.png" align="center">
----
+
 <img src="image/table2.png" align="center">
----
+
 <img src="image/fig1.png" align="center">
----
 
 ## Qualitative Results
 

@@ -92,14 +92,27 @@ bash table1.sh
 ```
 bash table2.sh
 ```
+
 ---
+
+## Quantitative Results
+
+<img src="image/table1.png" align="center">
+---
+<img src="image/table2.png" align="center">
+---
+<img src="image/fig1.png" align="center">
+---
+
 ## Qualitative Results
 
-- Top 3 retrieved results using the model trained by contrastive loss and distance-weighted sampling method that are equipped w/ or w/o on CARS. The expected and unexpected results are framed by green and red rectangles, respectively.
+- Top 3 retrieved results using the model trained by contrastive loss and distance-weighted sampling method that are
+  equipped w/ or w/o on CARS. The expected and unexpected results are framed by green and red rectangles, respectively.
 
 <img src="image/CARS_compare.jpg" align="center">
-  
-- Top 3 retrieved results using the model trained by margin loss that are equipped w/ or w/o on SOP. The expected and unexpected results are framed by green and red rectangles, respectively.
+
+- Top 3 retrieved results using the model trained by margin loss that are equipped w/ or w/o on SOP. The expected and
+  unexpected results are framed by green and red rectangles, respectively.
 
 <img src="image/ONLINE_Margin_compare.jpg" align="center">
 

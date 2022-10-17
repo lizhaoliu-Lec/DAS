@@ -1,4 +1,9 @@
 ## Densely-Anchored Sampling for Deep Metric Learning (ECCV 2022)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/das-densely-anchored-sampling-for-deep-metric/metric-learning-on-cub-200-2011-4)](https://paperswithcode.com/sota/metric-learning-on-cub-200-2011-4?p=das-densely-anchored-sampling-for-deep-metric)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/das-densely-anchored-sampling-for-deep-metric/metric-learning-on-cars196)](https://paperswithcode.com/sota/metric-learning-on-cars196?p=das-densely-anchored-sampling-for-deep-metric)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/das-densely-anchored-sampling-for-deep-metric/metric-learning-on-stanford-online-products-1)](https://paperswithcode.com/sota/metric-learning-on-stanford-online-products-1?p=das-densely-anchored-sampling-for-deep-metric)
+
 Created by Lizhao Liu, Shangxin Huang from South China University of Technology.
 
 This repository contains the official PyTorch-implementation of our ECCV 2022 paper [*Densely-Anchored Sampling for Deep

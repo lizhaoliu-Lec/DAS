@@ -100,7 +100,15 @@ def get_basic_training_parameters(parser):
                         help='Path to training data.')
     parser.add_argument('--save_path', default=os.getcwd() + '/TrainingResults', type=str,
                         help='Where to save everything.')
-
+    
+    # For ooDML Parameters
+    parser.add_argument('--data_split', default="default", type=str,
+                        help='Data split for split selection.')
+    parser.add_argument('--data_split_path', default="/home/liulizhao/projects/DAS/ooDML_split/cars196_splits.pkl", type=str,
+                        help='Data split path split selection.')
+    parser.add_argument('--data_split_id', default=1, type=int,
+                        help='Data split id for split selection.')
+    
     return parser
 
 

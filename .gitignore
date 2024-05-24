@@ -5,5 +5,7 @@ wandb
 diva_main.py
 .idea
 .vscode
-Training_Results/
+TrainingResults/
 tmp.py
+tmp.txt
+exp.sh
